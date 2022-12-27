@@ -1,0 +1,64 @@
+resource "aws_key_pair" "ec2_key" {
+  key_name   = "jyoti-c37"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCu66HQQyN2ZSbnuIbXS4c4Swx3auim0RIJWN9uOaoMYuj5Ud6LzPBgfqHVAlI/kYHcdaXPnEgxaUrB3tVeH0avIy8GLVJIAWV9DgjV5weV9hV8em1XzahQ6O6fFyOfa41zE9TDZbUciLVJGyFQ7xpv+zB7CR2VwhYMnlO6NQqLy9toH+PVUppOgTrvdt6LMA+dgC2QZSgAI9uIWsFq5dxXyvlSi1bVEMZF/+ZORnKJzfheyt+nM5cANREcT8RkfZ4Y8gVzv+0vMCVZ05vfWiNnA0MiK+c0RFYEHVPYSQeBRU2ftK7FKGsfGGS8Z5dccI+WyMOMecyAVJfcBCN8VnPuEUWM7oV4mPw0Ch52eSVR3m3rU9AF6PICwqZu9rgCjqeKc1Df/JioMvOvvPexRLFOIaCKup8kU80BYwpxMz5laez+jmd5fY+q7BbS+UmV/JkkpZDOQWTwpC28ZIFx3H1n6V5d0KBqmICq2V604kcRFO5MCGy9P5tSLAoYW4XCRPE= ubuntu@ip-172-31-33-126"
+}
+
+
+module "ec2_instance_bastion" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 3.0"
+
+  name = "bastion-instance"
+
+  ami                    = "ami-0574da719dca65348"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.ec2_key.key_name
+  monitoring             = true
+  vpc_security_group_ids = [module.public_sg.security_group_id]
+  subnet_id              = module.vpc.public_subnets[0]
+
+ tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
+}
+
+module "ec2_instance_jenkins" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 3.0"
+
+  
+  name = "jenkins-instance"
+
+  ami                    = "ami-0574da719dca65348"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.ec2_key.key_name
+  monitoring             = true
+  vpc_security_group_ids = [module.private_sg.security_group_id]
+  subnet_id              = module.vpc.private_subnets[0]
+
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
+}
+
+module "ec2_instance_app" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 3.0"
+
+  name = "app-instance"
+
+  ami                    = "ami-0574da719dca65348"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.ec2_key.key_name
+  monitoring             = true
+  vpc_security_group_ids = [module.private_sg.security_group_id]
+  subnet_id              = module.vpc.private_subnets[1]
+
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
+}
+

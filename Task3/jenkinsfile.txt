@@ -1,0 +1,30 @@
+pipeline {
+  agent {label 'app'}
+  environment {
+	    AWS_ACCOUNT_ID="304573088180"
+     	AWS_DEFAULT_REGION = "us-east-1"
+    }
+  
+  stages {
+    stage('cloning github repository') {
+      steps {
+          git branch:'master', url: 'https://github.com/jyotiPandey-1980/devopsassignment.git'
+
+      }
+    }
+    stage('build and push image to ecr'){
+            steps{
+                sh '''docker build -t node-app .
+                docker tag node-app:latest 304573088180.dkr.ecr.us-east-1.amazonaws.com/node-app:latest
+                docker push 304573088180.dkr.ecr.us-east-1.amazonaws.com/node-app:latest'''
+            }
+        }
+
+     stage('run container on app slave'){
+         steps{
+             sh '''docker run -d -p 8080:8080 304573088180.dkr.ecr.us-east-1.amazonaws.com/node-app:latest'''
+          }
+      }
+    
+    }
+}
